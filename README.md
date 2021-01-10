@@ -10,3 +10,5 @@
   the amount of spots the lobby needs, and lobby (default value = 1) is the lobby that needs the spots
 
 - `!queuelength` displays # of users in queue
+
+- `!spotinqueue` checks how many players are ahead of user

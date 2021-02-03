@@ -244,7 +244,7 @@ async def spot(ctx):
 @bot.command(
     help = "Deletes specified queue (Please do not abuse this) -- Default Input: \"Among Us\" -- Use: !delete <name> -- Other Names: !deleteq, !deleteque, !deletequeue, !delq, !delque, !delqueue",
     brief = "Deletes specified queue (Please do not abuse this) -- Default Input: \"Among Us\" -- Use: !delete <name> ",
-    aliases = ['deleteq', 'deleteque', 'deletequeue', 'delq', 'delque', 'deletequeue']
+    aliases = ['deleteq', 'deleteque', 'delq', 'delque', 'deletequeue']
 )
 async def delete(ctx, name="Among Us"):
     q = get_queue(name)
@@ -258,7 +258,7 @@ async def delete(ctx, name="Among Us"):
 @bot.command(
     help = "Prints out all active queues -- Use: !viewall -- Other Names: !viewqs, !viewques, !viewqueues, !printall, !printqs, !printques, !printqueue",
     brief = "Prints out all active queues -- Use: !viewall",
-    aliases = ['viewqs', 'viewques', 'viewqueues', 'printall', 'printq', 'printques', 'printqueues']
+    aliases = ['viewqs', 'viewques', 'viewqueues', 'printall', 'printqs', 'printques', 'printqueues']
 )
 async def viewall(ctx):
     for Queue in current_queues:

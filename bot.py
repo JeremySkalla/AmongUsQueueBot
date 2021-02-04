@@ -179,6 +179,7 @@ async def ping(ctx, arg1=None, arg2=None):
                     name = arg2
             # Arg2 is auto among us
             else:
+                num_spots = int(arg1)
                 name = "Among Us"
         # Arg 1 is name
         else:

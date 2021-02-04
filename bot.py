@@ -123,6 +123,9 @@ async def unqueue(ctx, name="Among Us"):
         return
     q.queue.remove(ctx.message.author)
     await ctx.channel.send(ctx.message.author.mention + " you have been removed from the {} queue".format(q.game))
+
+    e = q.print_queue()
+    await ctx.send(embed=e)
     
 # If the lobby needs more players, pings players in queue when spots are open
 @bot.command(

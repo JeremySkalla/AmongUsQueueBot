@@ -97,15 +97,12 @@ async def queue(ctx, name="Among Us"):
         q = Queue(name, ctx)
 
     # Check if the person is in the queue already
-    inq = False
-    for person in q.queue:
-        if ctx.message.author == person:
-            await ctx.channel.send(ctx.message.author.mention + " you are already in queue. use !leave to remove yourself")
-            inq = True
-    # If they're not in the queue, add them
-    if not inq:
-        q.queue.append(ctx.message.author)
-        await ctx.channel.send(ctx.message.author.mention + ", you are #" + str(len(q.queue)) + " in the queue")
+    if ctx.message.author in q.queue:
+        await ctx.channel.send(ctx.message.author.mention + " you are already in queue. use !leave to remove yourself")
+        return
+
+    q.queue.append(ctx.message.author)
+    await ctx.channel.send(ctx.message.author.mention + ", you are #" + str(len(q.queue)) + " in the queue")
     
     e = q.print_queue()
     await ctx.send(embed=e)
@@ -119,11 +116,16 @@ async def queue(ctx, name="Among Us"):
 async def unqueue(ctx, name="Among Us"):
     q = get_queue(name)
     if not q:
+        await ctx.channel.send("Queue {} does not exist".format(q.game))
+        return
+
+    if ctx.message.author not in q.queue:
         await ctx.channel.send(ctx.message.author.mention + " you are currently not in that queue. Use !queue to join Among Us queue, or !queue <Name> to join another")
         return
+
     q.queue.remove(ctx.message.author)
     await ctx.channel.send(ctx.message.author.mention + " you have been removed from the {} queue".format(q.game))
-
+        
     e = q.print_queue()
     await ctx.send(embed=e)
     
@@ -228,7 +230,7 @@ async def length(ctx, name="Among Us"):
         await ctx.channel.send("Error: Please enter a valid queue to view length")
         return
 
-    await ctx.channel.send("There are " + str(len(q.queue)) + "s in queue")
+    await ctx.channel.send("There are " + str(len(q.queue)) + " players in queue")
 
 # Checks how many players are ahead of user
 @bot.command(

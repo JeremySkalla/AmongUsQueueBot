@@ -30,7 +30,7 @@ class Queue:
     # Initialization
     def __init__(self, name, ctx):
         # Default to 10-player queue for everything
-        self.MAX = 10
+        self.max = 10
         # Create queue for game
         self.game = name
         self.queue = []
@@ -40,7 +40,10 @@ class Queue:
 
     # Mutators
     def set_max(self, new_max):
-        self.MAX = new_max
+        self.max = new_max
+
+    def set_num(self, new_num):
+        self.num = new_num
 
     # Helper function returns current queue as an embed -- Used in queue() and viewqueue()
     def print_queue(self):
@@ -75,11 +78,6 @@ def get_players_queue(player):
             return Queue
     return False
 
-# If the queue is 10 players long
-def create_new_lobby(queue):
-    # TODO NEXT VERSION
-    return
-
 # ----------------------------------------
 #              Bot Commands
 # ----------------------------------------
@@ -102,8 +100,33 @@ async def queue(ctx, name="Among Us"):
         return
 
     q.queue.append(ctx.message.author)
+
+    # This is for the case that the queue is max capacity
+    if len(q.queue) == q.max:
+        queue_num = 1
+        for q in current_queues:
+            if queue.game in q.game:
+                queue_num += 1
+
+        # Eventually move this to making the queue class have a num field, but right now, no
+        name =  " ".join(i for i in queue.game.split() if not i.isdigit()) + " " + str(queue_num)
+        new_queue = queue(name, ctx)
+
+        players = ""
+        while not q.queue: # While queue has players in it
+            if not q.queue:
+                break
+            player = q.queue.pop(0)
+            players += player.mention + " "
+
+        await ctx.channel.send(queue.game + " has reached enough players in queue for a new game, please join this new game if you are pinged")
+        await ctx.channel.send(players)
+        await ctx.channel.send("Your new queue is named: " + new_queue.game)
+        
+        return
+
+    # Normal behavior
     await ctx.channel.send(ctx.message.author.mention + ", you are #" + str(len(q.queue)) + " in the queue")
-    
     e = q.print_queue()
     await ctx.send(embed=e)
 
@@ -147,12 +170,12 @@ async def ping(ctx, arg1=None, arg2=None):
     else:
         # Arg 1 is num
         if arg1.isdigit():
-            num_spots = int(arg1)
             if arg2:
                 if arg2.isdigit():
                     await ctx.channel.send("Error: cannot have two ints")
                     return
                 else:
+                    num_spots = int(arg1)
                     name = arg2
             # Arg2 is auto among us
             else:
@@ -248,7 +271,7 @@ async def spot(ctx):
 # Removes a given queue from the master list
 @bot.command(
     help = "Deletes specified queue (Please do not abuse this) -- Default Input: \"Among Us\" -- Use: !delete <name> -- Other Names: !deleteq, !deleteque, !deletequeue, !delq, !delque, !delqueue",
-    brief = "Deletes specified queue (Please do not abuse this) -- Default Input: \"Among Us\" -- Use: !delete <name> ",
+    brief = "Deletes specified queue (Please do not abuse this) -- Default Input: \"Among Us\" -- Use: !delete <name>",
     aliases = ['deleteq', 'deleteque', 'delq', 'delque', 'deletequeue']
 )
 async def delete(ctx, name="Among Us"):
@@ -270,4 +293,22 @@ async def viewall(ctx):
         curr = Queue.print_queue()
         await ctx.channel.send(embed=curr)
 
+@bot.command(
+    help = "Sets the max for a specified queue -- Default Input: \"Among Us\" -- Use: !setmax <max> <name> -- Other Names: !max, !newmax, !setqmax, !setqmax, !setquemax, !setqueuemax",
+    brief = "Sets the max for a specified queue -- Default Input: \"Among Us\" -- Use: !setmax <max> <name>",
+    aliases = ['max', 'newmax', 'setqmax', 'setquemax', 'setqueuemax']
+)
+async def setmax(ctx, max, name='Among Us'):
+    q = get_queue(name)
+    if not q:
+        await ctx.channel.send("Error: please enter a valid queue name to delete")
+        return
+    
+    if max <= 0:
+        await ctx.channel.send("Error: please enter a valid maximum for the queue")
+
+    q.set_max(max)
+    await ctx.channel.send("{0} queue has been set to a max of {1}".format(q.game, max))
+
+# Runs the bot
 bot.run(TOKEN)

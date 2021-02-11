@@ -8,19 +8,7 @@ load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 current_queues = []
 
-bot = commands.Bot(command_prefix="!")  # Sets up bot
-
-# i'm definitely open to changing all the function names I wrote here. My goal was just to make them shorter to type, not set on them at all
-"""
-Current functionality:
-
-!queue - adds user to queue if they aren't already and prints queue
-!view - prints queue
-!ping <num> - pings the first <num> users in line and dequeues them. If <num> is ommitted, pings the first person in line
-!spot - tells the user how many people are ahead of them in queue (tells them their current spot)
-!length - tells you the length of the current queue. probably not as useful as seeing the entire queue, but could still be good
-!leave - dequeues the user if they are in queue
-"""
+bot = commands.Bot(command_prefix=".")  # Sets up bot
 
 # ----------------------------------------
 #             Queue Class
@@ -57,10 +45,9 @@ class Queue:
 
         embed = discord.Embed(title=t, description=d, color=c)
         embed.set_footer(
-            text="Use !queue {} to join the queue.".format(self.game))
+            text="Use .queue {} to join the queue.".format(self.game))
 
         return embed
-
 # ----------------------------------------
 #            Helper Functions
 # ----------------------------------------
@@ -84,8 +71,8 @@ def get_players_queue(player):
 
 # Queue function
 @bot.command(
-    help = "Adds player to queue and prints out the current queue -- Use: !queue -- Other Names: !q, !que, !queue, !joinqueue, !cue",
-    brief = "Adds player to queue and prints out the current queue -- Use: !queue",
+    help = "Adds player to queue and prints out the current queue -- Use: .queue -- Other Names: .q, .que, .queue, .joinqueue, .cue",
+    brief = "Adds player to queue and prints out the current queue",
     aliases = ['q', 'que', 'joinqueue', 'cue']
 )
 async def queue(ctx, name="Among Us"):
@@ -96,44 +83,37 @@ async def queue(ctx, name="Among Us"):
 
     # Check if the person is in the queue already
     if ctx.message.author in q.queue:
-        await ctx.channel.send(ctx.message.author.mention + " you are already in queue. use !leave to remove yourself")
-        return
-
-    q.queue.append(ctx.message.author)
-
-    # This is for the case that the queue is max capacity
-    if len(q.queue) == q.max:
-        queue_num = 1
-        for q in current_queues:
-            if queue.game in q.game:
-                queue_num += 1
-
-        # Eventually move this to making the queue class have a num field, but right now, no
-        name =  " ".join(i for i in queue.game.split() if not i.isdigit()) + " " + str(queue_num)
-        new_queue = queue(name, ctx)
-
-        players = ""
-        while not q.queue: # While queue has players in it
-            if not q.queue:
-                break
-            player = q.queue.pop(0)
-            players += player.mention + " "
-
-        await ctx.channel.send(queue.game + " has reached enough players in queue for a new game, please join this new game if you are pinged")
-        await ctx.channel.send(players)
-        await ctx.channel.send("Your new queue is named: " + new_queue.game)
-        
+        await ctx.channel.send(ctx.message.author.mention + " you are already in queue. use .leave to remove yourself")
         return
 
     # Normal behavior
+    q.queue.append(ctx.message.author)
     await ctx.channel.send(ctx.message.author.mention + ", you are #" + str(len(q.queue)) + " in the queue")
     e = q.print_queue()
     await ctx.send(embed=e)
+    
+    # If we have enough for a new lobby
+    if len(q.queue) == q.max:
+        t = "The queue has enough players for a new lobby!"
+        d = "Please join if you are mentioned here!"
+        c = discord.Color.teal()
+
+        players = ""
+        num_spots = q.max
+        while num_spots > 0:
+            player = q.queue.pop(0)
+            players += player.mention + " "
+            num_spots -= 1
+
+        e = discord.Embed(title=t, description=d, color=c)
+
+        await ctx.channel.send(embed=e)
+        await ctx.channel.send(players)
 
 # Removes player from queue if they don't want to play
 @bot.command(
-    help = "Removes player from queue -- Default Input: \"Among Us\" -- Use: !unqueue <name> -- Other Names: !unq, !unque, !leave, !leaveq, !leaveque, !leavequeue, !dq, !deq, !deque, !dequeue",
-    brief = "Removes player from queue -- Default Input: \"Among Us\" -- Use: !unqueue <name>",
+    help = "Removes player from queue -- Default Input: \"Among Us\" -- Use: .unqueue <name> -- Other Names: .unq, .unque, .leave, .leaveq, .leaveque, .leavequeue, .dq, .deq, .deque, .dequeue",
+    brief = "Removes player from queue",
     aliases = ['unq', 'unque', 'leave', 'leaveq', 'leaveque', 'leavequeue', 'dq', 'deq', 'deque', 'dequeue']
 )
 async def unqueue(ctx, name="Among Us"):
@@ -143,7 +123,7 @@ async def unqueue(ctx, name="Among Us"):
         return
 
     if ctx.message.author not in q.queue:
-        await ctx.channel.send(ctx.message.author.mention + " you are currently not in that queue. Use !queue to join Among Us queue, or !queue <Name> to join another")
+        await ctx.channel.send(ctx.message.author.mention + " you are currently not in that queue. Use .queue to join Among Us queue, or .queue <Name> to join another")
         return
 
     q.queue.remove(ctx.message.author)
@@ -154,8 +134,8 @@ async def unqueue(ctx, name="Among Us"):
     
 # If the lobby needs more players, pings players in queue when spots are open
 @bot.command(
-    help = "Pings players in queue when spots are open -- Default Input: NONE -- Use: !ping <num> <name> -- Other Names: !ping, !pingplayer, !need, !needplayer",
-    brief = "Pings players in queue when spots are open -- Default Input: NONE -- Use: !ping <num> <name>",
+    help = "Pings players in queue when spots are open -- Default Input: NONE -- Use: .ping <num> <name> -- Other Names: .ping, .pingplayer, .need, .needplayer",
+    brief = "Pings players in queue when spots are open",
     aliases = ['need', 'needplayer', 'pingplayer']
 )
 async def ping(ctx, arg1=None, arg2=None):
@@ -207,12 +187,10 @@ async def ping(ctx, arg1=None, arg2=None):
     # If we get here, we have a valid queue with at least one player
     if num_spots == 1:
         t = "The lobby has 1 open spot!"
-        d = "This player is next in line:\n"
     else:
         t = "The lobby has " + str(num_spots) + " open spots!"
-        d = "These players are next in line:\n"
 
-    d = "Please join if you are mentioned here."
+    d = "Please join if you are mentioned here!"
     c = discord.Color.green()
 
     players = ""
@@ -230,8 +208,8 @@ async def ping(ctx, arg1=None, arg2=None):
 
 # Prints out queue with given name
 @bot.command(
-    help = "Prints out the queue with its name -- Default Input: \"Among Us\" -- Use: !view <game> -- Other Names: !view, !viewq, !viewqueue, !print, !printq, !printqueue",
-    brief = "Prints out the queue with its name -- Default Input: \"Among Us\" -- Use: !view <game>",
+    help = "Prints out the queue with its name -- Default Input: \"Among Us\" -- Use: .view <game> -- Other Names: .view, .viewq, .viewqueue, .print, .printq, .printqueue",
+    brief = "Prints out the queue with its name",
     aliases = ['print', 'printq', 'printqueue', 'viewq', 'viewqueue'])
 async def view(ctx, name="Among Us"):
     q = get_queue(name)
@@ -244,8 +222,8 @@ async def view(ctx, name="Among Us"):
 
 # Displays # of users in queue
 @bot.command(
-    help = "Displays # of users in queue -- Default Input: \"Among Us\" -- Use: !length <name> -- Other Names: !qlength, !quelength, !queuelength",
-    brief = "Displays # of users in queue -- Default Input: \"Among Us\" -- Use: !length <name> ",
+    help = "Displays # of users in queue -- Default Input: \"Among Us\" -- Use: .length <name> -- Other Names: .qlength, .quelength, .queuelength",
+    brief = "Displays # of users in queue",
     aliases = ['qlength', 'quelength', 'queuelength']
 )
 async def length(ctx, name="Among Us"):
@@ -258,22 +236,22 @@ async def length(ctx, name="Among Us"):
 
 # Checks how many players are ahead of user
 @bot.command(
-    help = "Displays how many players are ahead of user -- Use: !spot -- Other Names: !spotinq, !spotinque, !spotinqueue, !place, !placeinq, !placeinque, !placeinqueue",
-    brief = "Displays how many players are ahead of user -- Use: !spot",
+    help = "Displays how many players are ahead of user -- Use: .spot -- Other Names: .spotinq, .spotinque, .spotinqueue, .place, .placeinq, .placeinque, .placeinqueue",
+    brief = "Displays how many players are ahead of user",
     aliases = ['spotinq', 'spotinque', 'spotinqueue', 'place', 'placeinq', 'placeinque', 'placeinqueue']
 )
 async def spot(ctx):
     q = get_players_queue(ctx.message.author)
     if not q:
-        await ctx.channel.send(ctx.message.author.mention + " you are currently not in any queue. Use !queue to join Among Us queue, or !queue <Name> to join another")
+        await ctx.channel.send(ctx.message.author.mention + " you are currently not in any queue. Use .queue to join Among Us queue, or .queue <Name> to join another")
         return
     await ctx.channel.send(ctx.message.author.mention + " you are currently #" + str(q.queue.index(ctx.message.author) + 1) + " in line")
 
 # Removes a given queue from the master list
 @bot.command(
-    help = "Deletes specified queue (Please do not abuse this) -- Default Input: \"Among Us\" -- Use: !delete <name> -- Other Names: !deleteq, !deleteque, !deletequeue, !delq, !delque, !delqueue",
-    brief = "Deletes specified queue (Please do not abuse this) -- Default Input: \"Among Us\" -- Use: !delete <name>",
-    aliases = ['deleteq', 'deleteque', 'delq', 'delque', 'deletequeue']
+    help = "Deletes specified queue (Please do not abuse this) -- Default Input: \"Among Us\" -- Use: .delete <name> -- Other Names: .del, .deleteq, .deleteque, .deletequeue, .delq, .delque, .delqueue",
+    brief = "Deletes specified queue (Please do not abuse this)",
+    aliases = ['del', 'deleteq', 'deleteque', 'delq', 'delque', 'deletequeue']
 )
 async def delete(ctx, name="Among Us"):
     q = get_queue(name)
@@ -285,8 +263,8 @@ async def delete(ctx, name="Among Us"):
 
 # Print out all current queues (mostly for debugging)
 @bot.command(
-    help = "Prints out all active queues -- Use: !viewall -- Other Names: !viewqs, !viewques, !viewqueues, !printall, !printqs, !printques, !printqueue",
-    brief = "Prints out all active queues -- Use: !viewall",
+    help = "Prints out all active queues -- Use: .viewall -- Other Names: .viewqs, .viewques, .viewqueues, .printall, .printqs, .printques, .printqueue",
+    brief = "Prints out all active queues",
     aliases = ['viewqs', 'viewques', 'viewqueues', 'printall', 'printqs', 'printques', 'printqueues']
 )
 async def viewall(ctx):
@@ -295,21 +273,25 @@ async def viewall(ctx):
         await ctx.channel.send(embed=curr)
 
 @bot.command(
-    help = "Sets the max for a specified queue -- Default Input: \"Among Us\" -- Use: !setmax <max> <name> -- Other Names: !max, !newmax, !setqmax, !setqmax, !setquemax, !setqueuemax",
-    brief = "Sets the max for a specified queue -- Default Input: \"Among Us\" -- Use: !setmax <max> <name>",
+    help = "Sets the max for a specified queue -- Default Input: \"Among Us\" -- Use: .setmax <max> <name> -- Other Names: .max, .newmax, .setqmax, .setqmax, .setquemax, .setqueuemax",
+    brief = "Sets the max for a specified queue",
     aliases = ['max', 'newmax', 'setqmax', 'setquemax', 'setqueuemax']
 )
 async def setmax(ctx, max, name='Among Us'):
     q = get_queue(name)
+
     if not q:
-        await ctx.channel.send("Error: please enter a valid queue name to delete")
+        await ctx.channel.send("Error: Enter a valid queue name to delete!")
         return
     
-    if max <= 0:
-        await ctx.channel.send("Error: please enter a valid maximum for the queue")
-
-    q.set_max(max)
-    await ctx.channel.send("{0} queue has been set to a max of {1}".format(q.game, max))
+    if max.isdigit():
+        if int(max) <= 0:
+            await ctx.channel.send("Error: Enter a valid maximum for the queue")
+        else:
+            q.set_max(int(max))
+            await ctx.channel.send("{0} queue has been set to a max of {1}".format(q.game, max))
+    else:
+        ctx.channel.send("Error: Elease enter a valid max!")
 
 # Runs the bot
 bot.run(TOKEN)

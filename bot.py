@@ -6,13 +6,21 @@ from discord.ext import commands
 # Globals
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
-current_queues = []
+current_servers = []
 
 bot = commands.Bot(command_prefix=".")  # Sets up bot
 
 # ----------------------------------------
 #             Queue Class
 # ----------------------------------------
+
+class Server:
+    def __init__(self, ctx):
+        self.guild = ctx.guild
+        self.name = ctx.guild.name
+        self.queues = []
+
+        current_servers.append(self)
 
 class Queue:
     # Initialization
@@ -23,8 +31,13 @@ class Queue:
         self.game = name
         self.queue = []
 
-        # Add this queue to the master list of all current queues
-        current_queues.append(self)
+        server = None
+        for s in current_servers:
+            if ctx.guild == s.guild:
+                server = s
+                break
+        
+        server.queues.append(self)
 
     # Mutators
     def set_max(self, new_max):
@@ -48,19 +61,26 @@ class Queue:
             text="Use .queue {} to join the queue.".format(self.game))
 
         return embed
+
 # ----------------------------------------
 #            Helper Functions
 # ----------------------------------------
 
-def get_queue(name):
-    for Queue in current_queues:
+def get_server(ctx):
+    for s in current_servers:
+        if ctx.guild == s.guild:
+            return s
+    return False
+
+def get_queue(name, server):
+    for Queue in server.queues:
         if Queue.game == name:
             return Queue
     return False
 
 
-def get_players_queue(player):
-    for Queue in current_queues:
+def get_players_queue(player, server):
+    for Queue in server.queues:
         if player in Queue.queue:
             return Queue
     return False
@@ -76,8 +96,12 @@ def get_players_queue(player):
     aliases = ['q', 'que', 'joinqueue', 'cue']
 )
 async def queue(ctx, name="Among Us"):
+    server = get_server(ctx)
+    if not server:
+        server = Server(ctx)
+
     # If the queue doesn't exist, create one
-    q = get_queue(name)
+    q = get_queue(name, server)
     if not q:
         q = Queue(name, ctx)
 
@@ -117,7 +141,12 @@ async def queue(ctx, name="Among Us"):
     aliases = ['unq', 'unque', 'leave', 'leaveq', 'leaveque', 'leavequeue', 'dq', 'deq', 'deque', 'dequeue']
 )
 async def unqueue(ctx, name="Among Us"):
-    q = get_queue(name)
+    server = get_server(ctx)
+    if not server:
+        server = Server(ctx)
+
+    # If the queue doesn't exist, create one
+    q = get_queue(name, server)
     if not q:
         await ctx.channel.send("Queue {} does not exist".format(q.game))
         return
@@ -174,10 +203,14 @@ async def ping(ctx, arg1=None, arg2=None):
             else:
                 num_spots = 1
 
-    q = get_queue(name)
+    server = get_server(ctx)
+    if not server:
+        server = Server(ctx)
+
+    # If the queue doesn't exist, create one
+    q = get_queue(name, server)
     if not q:
-        await ctx.channel.send("Error: Please enter a valid queue name!")
-        return
+        q = Queue(name, ctx)
 
     if len(q.queue) == 0:
         e = discord.Embed(title="There are no players to ping. Sorry!")
@@ -212,10 +245,14 @@ async def ping(ctx, arg1=None, arg2=None):
     brief = "Prints out the queue with its name",
     aliases = ['print', 'printq', 'printqueue', 'viewq', 'viewqueue'])
 async def view(ctx, name="Among Us"):
-    q = get_queue(name)
+    server = get_server(ctx)
+    if not server:
+        server = Server(ctx)
+
+    # If the queue doesn't exist, create one
+    q = get_queue(name, server)
     if not q:
         await ctx.channel.send("Error: Please enter a valid queue name to view!")
-        return
 
     e = q.print_queue()
     await ctx.channel.send(embed=e)
@@ -227,7 +264,12 @@ async def view(ctx, name="Among Us"):
     aliases = ['qlength', 'quelength', 'queuelength']
 )
 async def length(ctx, name="Among Us"):
-    q = get_queue(name)
+    server = get_server(ctx)
+    if not server:
+        server = Server(ctx)
+
+    # If the queue doesn't exist, create one
+    q = get_queue(name, server)
     if not q:
         await ctx.channel.send("Error: Please enter a valid queue to view length")
         return
@@ -241,10 +283,15 @@ async def length(ctx, name="Among Us"):
     aliases = ['spotinq', 'spotinque', 'spotinqueue', 'place', 'placeinq', 'placeinque', 'placeinqueue']
 )
 async def spot(ctx):
-    q = get_players_queue(ctx.message.author)
+    server = get_server(ctx)
+    if not server:
+        server = Server(ctx)
+
+    q = get_players_queue(ctx.message.author, server)
     if not q:
         await ctx.channel.send(ctx.message.author.mention + " you are currently not in any queue. Use .queue to join Among Us queue, or .queue <Name> to join another")
         return
+
     await ctx.channel.send(ctx.message.author.mention + " you are currently #" + str(q.queue.index(ctx.message.author) + 1) + " in line")
 
 # Removes a given queue from the master list
@@ -254,11 +301,15 @@ async def spot(ctx):
     aliases = ['del', 'deleteq', 'deleteque', 'delq', 'delque', 'deletequeue']
 )
 async def delete(ctx, name="Among Us"):
-    q = get_queue(name)
+    server = get_server(ctx)
+    if not server:
+        server = Server(ctx)
+
+    q = get_queue(name, server)
     if not q:
         await ctx.channel.send("Error: please enter a valid queue name to delete")
         return
-    current_queues.remove(q)
+    server.queues.remove(q)
     await ctx.channel.send("Deleted the {} queue".format(q.game))
 
 # Print out all current queues (mostly for debugging)
@@ -268,7 +319,11 @@ async def delete(ctx, name="Among Us"):
     aliases = ['viewqs', 'viewques', 'viewqueues', 'printall', 'printqs', 'printques', 'printqueues']
 )
 async def viewall(ctx):
-    for Queue in current_queues:
+    server = get_server(ctx)
+    if not server:
+        server = Server(ctx)
+
+    for Queue in server.queues:
         curr = Queue.print_queue()
         await ctx.channel.send(embed=curr)
 
@@ -278,8 +333,11 @@ async def viewall(ctx):
     aliases = ['max', 'newmax', 'setqmax', 'setquemax', 'setqueuemax']
 )
 async def setmax(ctx, max, name='Among Us'):
-    q = get_queue(name)
+    server = get_server(ctx)
+    if not server:
+        server = Server(ctx)
 
+    q = get_queue(name, server)
     if not q:
         await ctx.channel.send("Error: Enter a valid queue name to delete!")
         return

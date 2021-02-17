@@ -86,6 +86,14 @@ def get_players_queue(player, server):
     return False
 
 # ----------------------------------------
+#               On Ready
+# ----------------------------------------
+
+@bot.event
+async def on_ready():
+    await bot.change_presence(activity=discord.Game(name="use .help"))
+
+# ----------------------------------------
 #              Bot Commands
 # ----------------------------------------
 

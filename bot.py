@@ -101,7 +101,7 @@ async def on_ready():
 @bot.command(
     help = "Adds player to queue and prints out the current queue -- Use: .queue -- Other Names: .q, .que, .queue, .joinqueue, .cue",
     brief = "Adds player to queue and prints out the current queue",
-    aliases = ['q', 'que', 'joinqueue', 'cue']
+    aliases = ['q', 'que', 'joinqueue', 'cue', 'quwu']
 )
 async def queue(ctx, name="Among Us"):
     server = get_server(ctx)
@@ -146,7 +146,7 @@ async def queue(ctx, name="Among Us"):
 @bot.command(
     help = "Removes player from queue -- Default Input: \"Among Us\" -- Use: .unqueue <name> -- Other Names: .unq, .unque, .leave, .leaveq, .leaveque, .leavequeue, .dq, .deq, .deque, .dequeue",
     brief = "Removes player from queue",
-    aliases = ['unq', 'unque', 'leave', 'leaveq', 'leaveque', 'leavequeue', 'dq', 'deq', 'deque', 'dequeue']
+    aliases = ['unq', 'unque', 'leave', 'leaveq', 'leaveque', 'leavequeue', 'dq', 'deq', 'deque', 'dequeue', 'unquwu', 'dequwu']
 )
 async def unqueue(ctx, name="Among Us"):
     server = get_server(ctx)
@@ -358,6 +358,31 @@ async def setmax(ctx, max, name='Among Us'):
             await ctx.channel.send("{0} queue has been set to a max of {1}".format(q.game, max))
     else:
         ctx.channel.send("Error: Elease enter a valid max!")
+
+@bot.command(
+    help = "Removes player from a queue -- Default Input: .remove <name> -- Use: ",
+    brief = "Removes player from a queue",
+    aliases = ['removeplayer', '']
+)
+async def remove(ctx, player, name='Among Us'):
+    server = get_server(ctx)
+    if not server:
+        server = Server(ctx)
+
+    q = get_queue(name, server)
+    if not q:
+        await ctx.channel.send("Error: Enter a valid queue to delete the player from!")
+        return
+
+    # can't use "in" because queue is player object not name
+    for p in q.queue:
+        if p.name.lower() == player.lower():
+            q.queue.remove(p)
+            e = q.print_queue()
+            await ctx.send(embed=e)
+            return
+
+    await ctx.channel.send("Error: Enter a valid player to delete from the queue!")
 
 # Runs the bot
 bot.run(TOKEN)

@@ -1,6 +1,6 @@
 # Discord Among Us Queue Bot - v0.1
 
-![GitHub last commit](https://img.shields.io/github/last-commit/JeremySkalla/pysmashgg)
+![GitHub last commit](https://img.shields.io/github/last-commit/JeremySkalla/AmongUsQueueBot)
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/JeremySkalla/AmongUsQueueBot)
 ![GitHub](https://img.shields.io/github/license/JeremySkalla/pysmashgg)
 
@@ -19,42 +19,42 @@ It's as simple as the fact that we really like Among Us. Sometimes, when you've 
 
 ## Commands:
 
-- `!queue`: **Adds player to queue and prints out the current queue**
-  - Use: `!queue`
-  - Other Names: `!q`, `!que`, `!queue`, `!joinqueue`, `!cue`
+- `.queue`: **Adds player to queue and prints out the current queue**
+  - Use: `.queue`
+  - Other Names: `.q`, `.que`, `.queue`, `.joinqueue`, `.cue`
 
-- `!unqueue`: **Removes player from queue**
+- `.unqueue`: **Removes player from queue**
   - Default Input: `"Among Us"`
-  - Use: `!unqueue <name>`
-  - Other Names: `!unq`, `!unque`, `!leave`, `!leaveq`, `!leaveque`, `!leavequeue`, `!dq`, `!deq`, `!deque`, `!dequeue`
+  - Use: `.unqueue <name>`
+  - Other Names: `.unq`, `.unque`, `.leave`, `.leaveq`, `.leaveque`, `.leavequeue`, `.dq`, `.deq`, `.deque`, `.dequeue`
 
-- `!ping`: **Pings players in queue when spots are open**
+- `.ping`: **Pings players in queue when spots are open**
   - Default Input: NONE
-  - Use: `!ping <num> <name>` 
-  - Other Names: `!ping`, `!pingplayer`, `!need`, `!needplayer`
+  - Use: `.ping <num> <name>` 
+  - Other Names: `.ping`, `.pingplayer`, `.need`, `.needplayer`
 
-- `!view`: **Prints out the queue with its name**
+- `.view`: **Prints out the queue with its name**
   - Default Input: `"Among Us"`
-  - Use: `!view <game>`
-  - Other Names: `!view`, `!viewq`, `!viewqueue`, `!print`, `!printq`, `!printqueue`
+  - Use: `.view <game>`
+  - Other Names: `.view`, `.viewq`, `.viewqueue`, `.print`, `.printq`, `.printqueue`
 
-- `!length`: **Displays # of users in queue**
+- `.length`: **Displays # of users in queue**
   - Default Input: `"Among Us"`
-  - Use: `!length <name>`
-  - Other Names: `!qlength`, `!quelength`, `!queuelength`
+  - Use: `.length <name>`
+  - Other Names: `.qlength`, `.quelength`, `.queuelength`
 
-- `!spot`: **Displays how many players are ahead of user** 
-  - Use: `!spot` 
-  - Other Names: `!spotinq`, `!spotinque`, `!spotinqueue`, `!place`, `!placeinq`, `!placeinque`, `!placeinqueue`
+- `.spot`: **Displays how many players are ahead of user** 
+  - Use: `.spot` 
+  - Other Names: `.spotinq`, `.spotinque`, `.spotinqueue`, `.place`, `.placeinq`, `.placeinque`, `.placeinqueue`
 
-- `!delete`: **Deletes specified queue** 
+- `.delete`: **Deletes specified queue** 
   - Default Input: `"Among Us"` 
-  - Use: `!delete <name>`
-  - Other Names: `!deleteq`, `!deleteque`, `!deletequeue`, `!delq`, `!delque`, `!delqueue`
+  - Use: `.delete <name>`
+  - Other Names: `.deleteq`, `.deleteque`, `.deletequeue`, `.delq`, `.delque`, `.delqueue`
 
-- `!viewall`: Prints out all active queues
-  - Use: `!viewall` 
-  - Other Names: `!viewqs`, `!viewques`, `!viewqueues`, `!printall`, `!printqs`, `!printques`, `!printqueue`
+- `.viewall`: Prints out all active queues
+  - Use: `.viewall` 
+  - Other Names: `.viewqs`, `.viewques`, `.viewqueues`, `.printall`, `.printqs`, `.printques`, `.printqueue`
 
 ## Discord.py
 

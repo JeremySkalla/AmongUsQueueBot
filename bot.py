@@ -261,6 +261,7 @@ async def view(ctx, name="Among Us"):
     q = get_queue(name, server)
     if not q:
         await ctx.channel.send("Error: Please enter a valid queue name to view!")
+        return
 
     e = q.print_queue()
     await ctx.channel.send(embed=e)

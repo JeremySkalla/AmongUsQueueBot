@@ -362,7 +362,7 @@ async def setmax(ctx, max, name='Among Us'):
 @bot.command(
     help = "Removes player from a queue -- Default Input: .remove <name> -- Use: ",
     brief = "Removes player from a queue",
-    aliases = ['removeplayer', '']
+    aliases = ['removeplayer']
 )
 async def remove(ctx, player, name='Among Us'):
     server = get_server(ctx)

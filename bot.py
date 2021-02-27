@@ -123,24 +123,6 @@ async def queue(ctx, name="Among Us"):
     await ctx.channel.send(ctx.message.author.mention + ", you are #" + str(len(q.queue)) + " in the queue")
     e = q.print_queue()
     await ctx.send(embed=e)
-    
-    # If we have enough for a new lobby
-    if len(q.queue) == q.max:
-        t = "The queue has enough players for a new lobby!"
-        d = "Please join if you are mentioned here!"
-        c = discord.Color.teal()
-
-        players = ""
-        num_spots = q.max
-        while num_spots > 0:
-            player = q.queue.pop(0)
-            players += player.mention + " "
-            num_spots -= 1
-
-        e = discord.Embed(title=t, description=d, color=c)
-
-        await ctx.channel.send(embed=e)
-        await ctx.channel.send(players)
 
 # Removes player from queue if they don't want to play
 @bot.command(

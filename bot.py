@@ -19,8 +19,12 @@ class Server:
         self.guild = ctx.guild
         self.name = ctx.guild.name
         self.queues = []
+        self.default = "Among Us"
 
         current_servers.append(self)
+
+    def set_default(self, new_default):
+        self.default = new_default
 
 class Queue:
     # Initialization
@@ -103,10 +107,13 @@ async def on_ready():
     brief = "Adds player to queue and prints out the current queue",
     aliases = ['q', 'que', 'joinqueue', 'cue', 'quwu']
 )
-async def queue(ctx, name="Among Us"):
+async def queue(ctx, name=None):
     server = get_server(ctx)
     if not server:
         server = Server(ctx)
+
+    if name == None:
+        name = server.default
 
     # If the queue doesn't exist, create one
     q = get_queue(name, server)
@@ -130,10 +137,13 @@ async def queue(ctx, name="Among Us"):
     brief = "Removes player from queue",
     aliases = ['unq', 'unque', 'leave', 'leaveq', 'leaveque', 'leavequeue', 'dq', 'deq', 'deque', 'dequeue', 'unquwu', 'dequwu']
 )
-async def unqueue(ctx, name="Among Us"):
+async def unqueue(ctx, name=None):
     server = get_server(ctx)
     if not server:
         server = Server(ctx)
+
+    if name == None:
+        name = server.default
 
     # If the queue doesn't exist, create one
     q = get_queue(name, server)
@@ -158,12 +168,16 @@ async def unqueue(ctx, name="Among Us"):
     aliases = ['need', 'needplayer', 'pingplayer']
 )
 async def ping(ctx, arg1=None, arg2=None):
+    server = get_server(ctx)
+    if not server:
+        server = Server(ctx)
+
     # This code accounts for any ordering of the arguments
     name = ""
     num_spots = 0
     # neither argument is provided
     if not arg1 and not arg2:
-        name = "Among Us"
+        name = server.default
         num_spots = 1
     # One argument is provided
     else:
@@ -179,7 +193,7 @@ async def ping(ctx, arg1=None, arg2=None):
             # Arg2 is auto among us
             else:
                 num_spots = int(arg1)
-                name = "Among Us"
+                name = server.default
         # Arg 1 is name
         else:
             name = arg1
@@ -192,10 +206,6 @@ async def ping(ctx, arg1=None, arg2=None):
             # Arg 2 is auto "1" num spots
             else:
                 num_spots = 1
-
-    server = get_server(ctx)
-    if not server:
-        server = Server(ctx)
 
     # If the queue doesn't exist, create one
     q = get_queue(name, server)
@@ -234,10 +244,13 @@ async def ping(ctx, arg1=None, arg2=None):
     help = "Prints out the queue with its name -- Default Input: \"Among Us\" -- Use: .view <game> -- Other Names: .view, .viewq, .viewqueue, .print, .printq, .printqueue",
     brief = "Prints out the queue with its name",
     aliases = ['print', 'printq', 'printqueue', 'viewq', 'viewqueue'])
-async def view(ctx, name="Among Us"):
+async def view(ctx, name=None):
     server = get_server(ctx)
     if not server:
         server = Server(ctx)
+
+    if name == None:
+        name = server.default
 
     # If the queue doesn't exist, create one
     q = get_queue(name, server)
@@ -254,10 +267,13 @@ async def view(ctx, name="Among Us"):
     brief = "Displays # of users in queue",
     aliases = ['qlength', 'quelength', 'queuelength']
 )
-async def length(ctx, name="Among Us"):
+async def length(ctx, name=None):
     server = get_server(ctx)
     if not server:
         server = Server(ctx)
+
+    if name == None:
+        name = server.default
 
     # If the queue doesn't exist, create one
     q = get_queue(name, server)
@@ -296,6 +312,9 @@ async def delete(ctx, name="Among Us"):
     if not server:
         server = Server(ctx)
 
+    if name == None:
+        name = server.default
+
     q = get_queue(name, server)
     if not q:
         await ctx.channel.send("Error: please enter a valid queue name to delete")
@@ -323,10 +342,13 @@ async def viewall(ctx):
     brief = "Sets the max for a specified queue",
     aliases = ['max', 'newmax', 'setqmax', 'setquemax', 'setqueuemax']
 )
-async def setmax(ctx, max, name='Among Us'):
+async def setmax(ctx, max, name=None):
     server = get_server(ctx)
     if not server:
         server = Server(ctx)
+
+    if name == None:
+        name = server.default
 
     q = get_queue(name, server)
     if not q:
@@ -343,14 +365,17 @@ async def setmax(ctx, max, name='Among Us'):
         ctx.channel.send("Error: Elease enter a valid max!")
 
 @bot.command(
-    help = "Removes player from a queue -- Default Input: .remove <name> -- Use: ",
+    help = "Removes player from a queue -- Default Input: \"Among Us\" -- Use: .remove <queue> -- Other Names: .removeplayer",
     brief = "Removes player from a queue",
     aliases = ['removeplayer']
 )
-async def remove(ctx, player, name='Among Us'):
+async def remove(ctx, player, name=None):
     server = get_server(ctx)
     if not server:
         server = Server(ctx)
+
+    if name == None:
+        name = server.default
 
     q = get_queue(name, server)
     if not q:
@@ -366,6 +391,26 @@ async def remove(ctx, player, name='Among Us'):
             return
 
     await ctx.channel.send("Error: Enter a valid player to delete from the queue!")
+
+@bot.command(
+    help = "Sets default queue for each command in the server -- Default Input: None -- Use: .default <queue> -- Other names",
+    brief = "Sets default queue for each command in the server",
+    aliases = ['defaultq', 'defaultque', 'defaultqueue']
+)
+async def default(ctx, name):
+    server = get_server(ctx)
+    if not server:
+        server = Server(ctx)
+
+    q = get_queue(name, server)
+    if not q:
+        await ctx.channel.send("Error: Enter a valid queue name!")
+        return
+
+    # Sets teh default server
+    server.set_default(name)
+
+    await ctx.channel.send("Set default queue to {}".format(name))
 
 # Runs the bot
 bot.run(TOKEN)
